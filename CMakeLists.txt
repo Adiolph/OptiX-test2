@@ -12,7 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(LOCAL_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 set(OPTIX_PATH "/usr/local/optix/SDK/CMake")
 set(CMAKE_MODULE_PATH ${LOCAL_CMAKE_PATH} ${OPTIX_PATH})
-set(OptiX_INSTALL_DIR "/usr/local/optix")
 message("CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
 include("nvcuda_compile_ptx")
 configure_file(config.h.in config.h)
@@ -21,7 +20,7 @@ configure_file(config.h.in config.h)
 # find_package(GLFW REQUIRED)
 # find_package(GLEW REQUIRED)
 
-find_package(OptiX REQUIRED MODULE)
+find_package(OptiX REQUIRED)
 add_library(ImportOptiX INTERFACE IMPORTED) 
 set_target_properties(ImportOptiX PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${OptiX_INCLUDE_DIR}"
@@ -29,30 +28,22 @@ set_target_properties(ImportOptiX PROPERTIES
 )
 message( STATUS "OptiX_INCLUDE_DIR : ${OptiX_INCLUDE_DIR} ")
 
-find_package(CUDA 10.0 REQUIRED MODULE) 
+find_package(CUDA 10.0 REQUIRED) 
 add_library(ImportCUDA INTERFACE IMPORTED)
 set_target_properties(ImportCUDA  PROPERTIES 
     INTERFACE_INCLUDE_DIRECTORIES "${CUDA_INCLUDE_DIRS}"
     INTERFACE_LINK_LIBRARIES "${CUDA_cudart_static_LIBRARY};${CUDA_curand_LIBRARY}"
 )
 
-set(COMPUTE_CAPABILITY "75" CACHE STRING "Compute capability")
+set(COMPUTE_CAPABILITY "30" CACHE STRING "Compute capability")
 message(STATUS " COMPUTE_CAPABILITY=${COMPUTE_CAPABILITY} ")
 
-set(CUDA_NVCC_FLAGS)
-list(APPEND CUDA_NVCC_FLAGS "-Xcompiler -fPIC")
-list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${COMPUTE_CAPABILITY},code=sm_${COMPUTE_CAPABILITY}")
-list(APPEND CUDA_NVCC_FLAGS "-O2")
-list(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
-
-include_directories(
-  "include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/cuda"
-  ${OptiX_INCLUDE}
-  ${PROJECT_BINARY_DIR}
-)
-
-message("CUDA_NVCC_FLAGS: " ${CUDA_NVCC_FLAGS})
+# set(CUDA_NVCC_FLAGS)
+# list(APPEND CUDA_NVCC_FLAGS "-Xcompiler -fPIC")
+# list(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${COMPUTE_CAPABILITY},code=sm_${COMPUTE_CAPABILITY}")
+# list(APPEND CUDA_NVCC_FLAGS "-O2")
+# list(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
+# message("CUDA_NVCC_FLAGS: " ${CUDA_NVCC_FLAGS})
 
 set(HEADERS
   include/error_check.h
@@ -76,11 +67,20 @@ set(CUDA_HEADERS
   cuda/random.h
 )
 
+NVCUDA_COMPILE_PTX(SOURCES ${CUDA_SOURCES}
+                  DEPENDENCIES ${CUDA_HEADERS}
+                  TARGET_PATH "${CMAKE_CURRENT_BINARY_DIR}/ptx"
+                  GENERATED_FILES PTX_SOURCES
+                  NVCC_OPTIONS "-gencode=arch=compute_${COMPUTE_CAPABILITY},code=sm_${COMPUTE_CAPABILITY}" "--use_fast_math" "--relocatable-device-code=true" "--generate-line-info" "-Wno-deprecated-gpu-targets" "-I${OptiX_INCLUDE}" "-I${CMAKE_CURRENT_SOURCE_DIR}/cuda" "-I${CUDA_INCLUDE_DIRS}"
+                  )
 
-CUDA_WRAP_SRCS( ${name} PTX _generated_PTX_files ${CUDA_SOURCES} )
-message(STATUS "CUDA sources: ${CUDA_SOURCES}")
-message(STATUS "Generated PTX files: ${_generated_PTX_files}")
+include_directories(
+  "include"
+  ${OptiX_INCLUDE}
+  ${PROJECT_BINARY_DIR}
+)
 
+message("PTX_SOURCES: " ${PTX_SOURCES})
 
 add_executable(${NAME}
   ${SOURCES}
