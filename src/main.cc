@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <vector>
 #include "read_PTX.h"
 #include "error_check.h"
 #include <array>
@@ -112,18 +113,18 @@ void createContext(RTcontext *context)
   RT_CHECK_ERROR(rtContextSetPrintBufferSize(*context, 4096));
 
   /* Ray generation program */
-  const char *ptx = read_ptx_file("point_source");
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "point_source", &ray_gen_program));
+  std::string ptx = read_ptx_file("point_source");
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "point_source", &ray_gen_program));
   RT_CHECK_ERROR(rtContextSetRayGenerationProgram(*context, 0, ray_gen_program));
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "source_pos", &source_pos));
   rtVariableSet3f(source_pos, 0.0, 0.0, 0.0);
 
   /* Exception program */
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "exception", &exception_program));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "exception", &exception_program));
   RT_CHECK_ERROR(rtContextSetExceptionProgram(*context, 0, exception_program));
 
   /* Miss program */
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "miss", &miss_program));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "miss", &miss_program));
   RT_CHECK_ERROR(rtContextSetMissProgram(*context, 0, miss_program));
 }
 
@@ -139,11 +140,11 @@ void createHitBuffer(RTcontext *context, RTbuffer *output_id)
 
 void createMaterial(RTcontext *context, RTmaterial *material)
 {
-  const char *ptx = read_ptx_file("simple_dom");
-  std::cout << " createMaterial " << ptx << std::endl;
+  std::string ptx = read_ptx_file("simple_dom");
+  std::cout << " createMaterial " << ptx.c_str() << std::endl;
 
   RTprogram closest_hit;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "closest_hit", &closest_hit));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "closest_hit", &closest_hit));
 
   RT_CHECK_ERROR(rtMaterialCreate(*context, material));
   RT_CHECK_ERROR(rtMaterialSetClosestHitProgram(*material, 0, closest_hit));
@@ -151,17 +152,17 @@ void createMaterial(RTcontext *context, RTmaterial *material)
 
 void createSphere(RTcontext *context, RTgeometry *sphere)
 {
-  const char *ptx = read_ptx_file("sphere");
+  std::string ptx = read_ptx_file("sphere");
 
   RT_CHECK_ERROR(rtGeometryCreate(*context, sphere));
   RT_CHECK_ERROR(rtGeometrySetPrimitiveCount(*sphere, 1u));
 
   RTprogram bounds;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "bounds", &bounds));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "bounds", &bounds));
   RT_CHECK_ERROR(rtGeometrySetBoundingBoxProgram(*sphere, bounds));
 
   RTprogram intersect;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "intersect", &intersect));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "intersect", &intersect));
   RT_CHECK_ERROR(rtGeometrySetIntersectionProgram(*sphere, intersect));
 
   RTvariable sphere_param;
