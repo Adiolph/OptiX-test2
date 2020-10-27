@@ -21,7 +21,7 @@ configure_file(config.h.in config.h)
 find_package(OptiX REQUIRED)
 add_library(ImportOptiX INTERFACE IMPORTED) 
 set_target_properties(ImportOptiX PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${OptiX_INCLUDE_DIR}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OptiX_INCLUDE}"
     INTERFACE_LINK_LIBRARIES "optix;optixu;optix_prime"
 )
 
@@ -68,7 +68,7 @@ NVCUDA_COMPILE_PTX(SOURCES ${CUDA_SOURCES}
                   DEPENDENCIES ${CUDA_HEADERS}
                   TARGET_PATH "${CMAKE_CURRENT_BINARY_DIR}/ptx"
                   GENERATED_FILES PTX_SOURCES
-                  NVCC_OPTIONS "-gencode=arch=compute_${COMPUTE_CAPABILITY},code=sm_${COMPUTE_CAPABILITY}" "--use_fast_math" "--relocatable-device-code=true" "--generate-line-info" "-Wno-deprecated-gpu-targets" "-I${OptiX_INCLUDE}" "-I${CMAKE_CURRENT_SOURCE_DIR}/cuda" "-I${CUDA_INCLUDE_DIRS}"
+                  NVCC_OPTIONS "--gpu-architecture=compute_${COMPUTE_CAPABILITY}" "--use_fast_math" "--relocatable-device-code=true" "--generate-line-info" "-Wno-deprecated-gpu-targets" "-I${OptiX_INCLUDE}" "-I${CMAKE_CURRENT_SOURCE_DIR}/cuda" "-I${CUDA_INCLUDE_DIRS}"
                   )
 
 include_directories(

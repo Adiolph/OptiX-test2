@@ -113,18 +113,17 @@ void createContext(RTcontext *context)
 
   /* Ray generation program */
   const char *ptx = read_ptx_file("point_source");
-  std::cout << "Create ptx source :" << ptx << std::endl;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXString(*context, ptx, "point_source", &ray_gen_program));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "point_source", &ray_gen_program));
   RT_CHECK_ERROR(rtContextSetRayGenerationProgram(*context, 0, ray_gen_program));
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "source_pos", &source_pos));
   rtVariableSet3f(source_pos, 0.0, 0.0, 0.0);
 
   /* Exception program */
-  RT_CHECK_ERROR(rtProgramCreateFromPTXString(*context, ptx, "exception", &exception_program));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "exception", &exception_program));
   RT_CHECK_ERROR(rtContextSetExceptionProgram(*context, 0, exception_program));
 
   /* Miss program */
-  RT_CHECK_ERROR(rtProgramCreateFromPTXString(*context, ptx, "miss", &miss_program));
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx, "miss", &miss_program));
   RT_CHECK_ERROR(rtContextSetMissProgram(*context, 0, miss_program));
 }
 

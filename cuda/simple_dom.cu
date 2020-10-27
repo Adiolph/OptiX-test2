@@ -9,11 +9,11 @@ struct PerRayData_pathtrace
 };
 
 rtDeclareVariable(float3, hit_pos, attribute hit_pos, );
-rtDeclareVariable(PerRayData_pathtrace, prd_radiance, rtPayload, );
+rtDeclareVariable(PerRayData_pathtrace, prd, rtPayload, );
 
-RT_PROGRAM void closest_hit_radiance()
+RT_PROGRAM void closest_hit()
 {
-  prd_radiance.hitID = hit_pos.x / 10;
+  prd.hitID = hit_pos.x / 10;
 };
 
 

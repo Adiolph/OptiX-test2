@@ -16,7 +16,7 @@ const char *PTXPath(const char *install_prefix, const char *file_name)
 
 const char *read_ptx_file(const char *file_name)
 {
-  const char *ptx = PTXPath(CMAKE_INSTALL_PREFIX, "point_source");
+  const char *ptx = PTXPath(CMAKE_INSTALL_PREFIX, file_name);
   std::cout << "Create ptx source: " << ptx << std::endl;
   return ptx;
 }
