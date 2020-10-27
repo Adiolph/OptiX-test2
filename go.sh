@@ -38,7 +38,6 @@ if [ ! -f CMakeCache.txt ]; then
  
     cmake $sdir \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_MODULE_PATH=${optix_prefix}/SDK/CMake \
           -DOptiX_INSTALL_DIR=${optix_prefix} \
           -DCMAKE_INSTALL_PREFIX=${install_prefix}
             

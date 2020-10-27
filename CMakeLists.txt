@@ -9,9 +9,7 @@ endif()
 set(CMAKE_CXX_STANDARD 14) 
 set(CMAKE_CXX_STANDARD_REQUIRED on) 
 
-set(LOCAL_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
-set(OPTIX_PATH "/usr/local/optix/SDK/CMake")
-set(CMAKE_MODULE_PATH ${LOCAL_CMAKE_PATH} ${OPTIX_PATH})
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${OptiX_INSTALL_DIR}/SDK/CMake")
 message("CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
 include("nvcuda_compile_ptx")
 configure_file(config.h.in config.h)
@@ -26,7 +24,6 @@ set_target_properties(ImportOptiX PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${OptiX_INCLUDE_DIR}"
     INTERFACE_LINK_LIBRARIES "optix;optixu;optix_prime"
 )
-message( STATUS "OptiX_INCLUDE_DIR : ${OptiX_INCLUDE_DIR} ")
 
 find_package(CUDA 10.0 REQUIRED) 
 add_library(ImportCUDA INTERFACE IMPORTED)
@@ -36,7 +33,7 @@ set_target_properties(ImportCUDA  PROPERTIES
 )
 
 set(COMPUTE_CAPABILITY "30" CACHE STRING "Compute capability")
-message(STATUS " COMPUTE_CAPABILITY=${COMPUTE_CAPABILITY} ")
+message(STATUS "COMPUTE_CAPABILITY = ${COMPUTE_CAPABILITY}")
 
 # set(CUDA_NVCC_FLAGS)
 # list(APPEND CUDA_NVCC_FLAGS "-Xcompiler -fPIC")
