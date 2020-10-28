@@ -1,16 +1,16 @@
 #include <array>
 #include <vector>
 #include <optix_world.h>
+#include <iostream>
 
-
-const unsigned int DOM_NUM_X = 20u;
-const unsigned int DOM_NUM_Y = 20u;
-const unsigned int DOM_NUM_Z = 20u;
+const unsigned int DOM_NUM_X = 4u;
+const unsigned int DOM_NUM_Y = 4u;
+const unsigned int DOM_NUM_Z = 4u;
 const float DOM_SEP_X = 50.f;
 const float DOM_SEP_Y = 50.f;
 const float DOM_SEP_Z = 50.f;
 const float DOM_RAD = 15.f;
-const unsigned int NUM_DOM = 8000u;
+const unsigned int NUM_DOM = DOM_NUM_X*DOM_NUM_Y*DOM_NUM_Z;
 
 struct GeoConfig
 {
@@ -32,10 +32,12 @@ struct GeoConfig
       int ny = static_cast<int>((i - (DOM_NUM_Y * DOM_NUM_Z) * nx) / DOM_NUM_Z);
       int nz = i - (DOM_NUM_Y * DOM_NUM_Z) * nx - DOM_NUM_Z * ny;
 
-      float tx = (nx - (DOM_NUM_X - 1) / 2) * DOM_SEP_X;
-      float ty = (ny - (DOM_NUM_Y - 1) / 2) * DOM_SEP_Y;
-      float tz = (nx - (DOM_NUM_X - 1) / 2) * DOM_SEP_Z;
+      float tx = (nx - (DOM_NUM_X - 1.f) / 2.f) * DOM_SEP_X;
+      float ty = (ny - (DOM_NUM_Y - 1.f) / 2.f) * DOM_SEP_Y;
+      float tz = (nz - (DOM_NUM_Z - 1.f) / 2.f) * DOM_SEP_Z;
       transforms.push_back(MakeTranslation(tx, ty, tz));
+      // std::cout << "nxnynz: " << nx << ", " << ny << ", " << nz << std::endl;
+      // std::cout << "txtytz: " << tx << ", " << ty << ", " << tz << std::endl;
     }
   }
 };

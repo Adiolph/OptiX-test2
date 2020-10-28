@@ -154,15 +154,20 @@ void createContext(RTcontext *context, RTbuffer *output_buffer_obj)
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "V", &V));
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "W", &W));
 
-  optix::float3 cam_eye = {0.0f, 0.0f, 200.f};
-  optix::float3 lookat = {0.0f, 0.0f, 0.0f};
-  optix::float3 up = {0.0f, 1.0f, 0.0f};
+  optix::float3 cam_eye = {300.f, 0.f, 0.f};
+  optix::float3 lookat = {-1.f, 0.f, 0.f};
+  optix::float3 up = {0.f, 0.f, 1.f};
   hfov = 60.0f;
   aspect_ratio = (float)width / (float)height;
   optix::float3 camera_u, camera_v, camera_w;
   sutil::calculateCameraVariables(
       cam_eye, lookat, up, hfov, aspect_ratio,
       camera_u, camera_v, camera_w);
+
+  std::cout << "Camera pos: " << cam_eye.x << ", " << cam_eye.y << ", " << cam_eye.z << std::endl;
+  std::cout << "U: " << camera_u.x << ", " << camera_u.y << ", " << camera_u.z << std::endl;
+  std::cout << "V: " << camera_v.x << ", " << camera_v.y << ", " << camera_v.z << std::endl;
+  std::cout << "W: " << camera_w.x << ", " << camera_w.y << ", " << camera_w.z << std::endl;
 
   RT_CHECK_ERROR(rtVariableSet3fv(eye, &cam_eye.x));
   RT_CHECK_ERROR(rtVariableSet3fv(U, &camera_u.x));
@@ -254,7 +259,7 @@ void createGeometry(RTcontext *context, const GeoConfig &cfg)
   {
     RTtransform xform;
     RT_CHECK_ERROR(rtTransformCreate(*context, &xform));
-    int transpose = 1;
+    int transpose = 0;
     const std::array<float, 16> &arr = cfg.transforms[instance_idx];
     const float *matrix = arr.data();
     const float *inverse = NULL;
@@ -268,7 +273,7 @@ void createGeometry(RTcontext *context, const GeoConfig &cfg)
 
     RTgeometrygroup perxform;
     RT_CHECK_ERROR(rtGeometryGroupCreate(*context, &perxform));
-    RT_CHECK_ERROR(rtGeometryGroupSetChildCount(perxform, 1));
+    RT_CHECK_ERROR(rtGeometryGroupSetChildCount(perxform, 1u));
     RT_CHECK_ERROR(rtGeometryGroupSetChild(perxform, 0, pergi));
     RT_CHECK_ERROR(rtGeometryGroupSetAcceleration(perxform, accel));
 
@@ -283,7 +288,7 @@ void createGeometry(RTcontext *context, const GeoConfig &cfg)
 
   RTgroup top;
   RT_CHECK_ERROR(rtGroupCreate(*context, &top));
-  RT_CHECK_ERROR(rtGroupSetChildCount(top, 1));
+  RT_CHECK_ERROR(rtGroupSetChildCount(top, 1u));
   RT_CHECK_ERROR(rtGroupSetChild(top, 0, assembly));
   RT_CHECK_ERROR(rtGroupSetAcceleration(top, top_accel));
 
