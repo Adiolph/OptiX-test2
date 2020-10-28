@@ -83,7 +83,7 @@ void createContext(RTcontext *context)
   RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "point_source", &ray_gen_program));
   RT_CHECK_ERROR(rtContextSetRayGenerationProgram(*context, 0, ray_gen_program));
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "source_pos", &source_pos));
-  rtVariableSet3f(source_pos, 0.f, 0.f, 16.f);
+  rtVariableSet3f(source_pos, 0.f, 0.f, 0.f);
 
   /* Exception program */
   RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "exception", &exception_program));
@@ -176,7 +176,7 @@ void createGeometry(RTcontext *context, const GeoConfig &cfg)
   {
     RTtransform xform;
     RT_CHECK_ERROR(rtTransformCreate(*context, &xform));
-    int transpose = 1;
+    int transpose = 0;
     const std::array<float, 16> &arr = cfg.transforms[instance_idx];
     const float *matrix = arr.data();
     const float *inverse = NULL;
