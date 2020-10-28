@@ -43,6 +43,7 @@ message(STATUS "COMPUTE_CAPABILITY = ${COMPUTE_CAPABILITY}")
 # message("CUDA_NVCC_FLAGS: " ${CUDA_NVCC_FLAGS})
 
 set(HEADERS
+  include/geo_configure.h
   include/error_check.h
   include/read_PTX.h
 )
