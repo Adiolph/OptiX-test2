@@ -15,8 +15,10 @@ using namespace optix;
 const unsigned int DOM_NUM_X = 20u;
 const unsigned int DOM_NUM_Y = 20u;
 const unsigned int DOM_NUM_Z = 20u;
+const float DOM_SEP_X = 50.f;
+const float DOM_SEP_Y = 50.f;
+const float DOM_SEP_Z = 50.f;
 const float DOM_RAD = 15.f;
-const float DOM_SEP = 50.f;
 
 const unsigned int NUM_DOM = 8000u;
 const unsigned int NUM_PHOTON = 100u;
@@ -37,13 +39,13 @@ struct GeoConfig
   {
     for (int i = 0; i < num; i++)
     {
-      int nx = static_cast<int>(i / 400);
-      int ny = static_cast<int>((i - 400 * nx) / 20);
-      int nz = i - 400 * nx - 20 * ny;
+      int nx = static_cast<int>(i / DOM_NUM_Y / DOM_NUM_Z);
+      int ny = static_cast<int>((i - (DOM_NUM_Y * DOM_NUM_Z) * nx) / DOM_NUM_Z);
+      int nz = i - (DOM_NUM_Y * DOM_NUM_Z) * nx - DOM_NUM_Z * ny;
 
-      float tx = nx * 50 - 475;
-      float ty = ny * 50 - 475;
-      float tz = nz * 50 - 475;
+      float tx = (nx - (DOM_NUM_X - 1) / 2) * DOM_SEP_X;
+      float ty = (ny - (DOM_NUM_Y - 1) / 2) * DOM_SEP_Y;
+      float tz = (nx - (DOM_NUM_X - 1) / 2) * DOM_SEP_Z;
       transforms.push_back(MakeTranslation(tx, ty, tz));
     }
   }
