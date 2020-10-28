@@ -1,11 +1,9 @@
 #include <optix_world.h>
 #include "random.h"  // OptiX random header file in SDK/cuda/random.h
+#include "PerRayData_pathtrace.h"
 
 using namespace optix;
-
 #define PI 3.1415926f
-
-#include "PerRayData_pathtrace.h"
 
 rtDeclareVariable(float3, source_pos, , );  // position of source
 rtDeclareVariable(rtObject, top_object, , );  // group object
@@ -14,7 +12,6 @@ rtDeclareVariable(uint, launch_dim, rtLaunchDim, );
 rtBuffer<unsigned, 1> output_id;  // record the id of dom that photon hit, 0 if no hit
 
 rtDeclareVariable(PerRayData_pathtrace, prd, rtPayload, );
-
 
 RT_PROGRAM void point_source()
 {

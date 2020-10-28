@@ -10,7 +10,6 @@
 #include "geo_configure.h"
 #include <array>
 
-
 using namespace optix;
 
 const unsigned int NUM_PHOTON = 100u;
