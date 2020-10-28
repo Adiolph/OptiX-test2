@@ -4,6 +4,7 @@ using namespace optix;
 
 rtDeclareVariable(float4, sphere_coor, , );
 rtDeclareVariable(float3, hit_pos, attribute hit_pos, );
+rtDeclareVariable(float3, geometric_normal, attribute geometric_normal, );
 rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 
 template <bool use_robust_method>
@@ -45,6 +46,7 @@ static __device__ void intersect_sphere(void)
     if (rtPotentialIntersection((root1 + root11) * l))
     {
       hit_pos = center;
+      geometric_normal = (O + (root1 + root11)*D)/radius;
       if (rtReportIntersection(0)) //? why rtReportIntersection can fail?
         check_second = false;
     }
@@ -54,6 +56,7 @@ static __device__ void intersect_sphere(void)
       if (rtPotentialIntersection(root2 * l))
       {
         hit_pos = center;
+        geometric_normal = (O + root2*D)/radius;
         rtReportIntersection(0);
       }
     }

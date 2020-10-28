@@ -24,6 +24,12 @@ set_target_properties(ImportOptiX PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${OptiX_INCLUDE}"
     INTERFACE_LINK_LIBRARIES "optix;optixu;optix_prime"
 )
+add_library(ImportSutil INTERFACE IMPORTED) 
+set_target_properties(ImportSutil PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${OptiX_INSTALL_DIR}/SDK"
+    INTERFACE_LINK_DIRECTORIES "${OptiX_INSTALL_DIR}/lib64"
+    INTERFACE_LINK_LIBRARIES sutil_sdk
+)
 
 find_package(CUDA 10.0 REQUIRED) 
 add_library(ImportCUDA INTERFACE IMPORTED)
@@ -58,6 +64,7 @@ set(CUDA_SOURCES
   cuda/point_source.cu
   cuda/simple_dom.cu
   cuda/sphere.cu
+  cuda/camera_viewer.cu
 )
 
 set(CUDA_HEADERS
@@ -91,6 +98,22 @@ add_executable(${NAME}
 target_link_libraries(${NAME} PUBLIC
   ImportOptiX
   ImportCUDA
+)
+
+add_executable(test_geometry
+  src/test_geometry.cc
+  src/read_PTX.cc
+  src/error_check.cc
+  ${HEADERS}
+  ${CUDA_SOURCES}
+  ${CUDA_HEADERS}
+  ${PTX_SOURCES}
+)
+
+target_link_libraries(test_geometry PUBLIC
+  ImportOptiX
+  ImportCUDA
+  ImportSutil
 )
 
 install(FILES ${PTX_SOURCES} DESTINATION ptx)
