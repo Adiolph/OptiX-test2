@@ -4,7 +4,7 @@
 
 struct PerRayData_pathtrace
 {
-  unsigned int hitID;
+  int hitID;
   unsigned int seed;
 };
 

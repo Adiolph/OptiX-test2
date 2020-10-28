@@ -8,5 +8,6 @@ rtDeclareVariable(PerRayData_pathtrace, prd, rtPayload, );
 
 RT_PROGRAM void closest_hit()
 {
-  prd.hitID = hit_pos.x / 10;
+  prd.hitID = __float2int_rd(hit_pos.x);
+  rtPrintf("hitID: %d, hit_pos: %.3f, %.3f, %.3f \n", prd.hitID, hit_pos.x, hit_pos.y, hit_pos.z);
 };

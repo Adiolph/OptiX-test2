@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
     createGeometry(&context, cfg);
 
     // validate context
-    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << " ]" << std::endl;
     RT_CHECK_ERROR(rtContextValidate(context));
-    std::cout << "] context validation " << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << " ]" << std::endl;
 
     // launch context
     RT_CHECK_ERROR(rtContextLaunch2D(context, 0u, width, height));

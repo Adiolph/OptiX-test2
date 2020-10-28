@@ -17,15 +17,15 @@ RT_PROGRAM void point_source()
 {
     float3 ray_origin = source_pos;
     PerRayData_pathtrace prd;
-    prd.hitID = 0u ;
+    prd.hitID = 0;
     prd.seed = tea<4>(launch_index, 0u);
     float cos_th = 2.f * rnd(prd.seed) - 1.f;
     float sin_th = sqrt(1.f - cos_th*cos_th);
     float phi = 2.f * PI * rnd(prd.seed) ; 
     float cos_ph = cos(phi);
     float sin_ph = sin(phi); 
-    float3 ray_direction = make_float3(cos_th*cos_ph, cos_th*sin_ph, sin_th);
-    rtPrintf("//point_source  ray_direction (%f %f %f) ray_origin (%f %f %f)  \n", 
+    float3 ray_direction = make_float3(sin_th*cos_ph, sin_th*sin_ph, cos_th);
+    rtPrintf("//point_source  ray_direction (%.3f %.3f %.3f) ray_origin (%.3f %.3f %.3f)  \n", 
            ray_direction.x, ray_direction.y, ray_direction.z,
            ray_origin.x, ray_origin.y, ray_origin.z
            );  
@@ -43,6 +43,6 @@ RT_PROGRAM void exception()
 
 RT_PROGRAM void miss()
 {
-    prd.hitID = 42u ;
+    prd.hitID = 42;
 }
 

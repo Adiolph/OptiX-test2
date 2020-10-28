@@ -37,9 +37,9 @@ int main(int argc, char *argv[])
     createGeometry(&context, cfg);
 
     // validate context
-    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << " ]" << std::endl;
     RT_CHECK_ERROR(rtContextValidate(context));
-    std::cout << "] context validation " << __FILE__ << ":" << __LINE__ << std::endl;
+    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << " ]" << std::endl;
 
     // launch context
     unsigned entry_point_index = 0u;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     // read output buffer
     void *output_id_ptr;
     RT_CHECK_ERROR(rtBufferMap(output_id, &output_id_ptr));
-    unsigned int *output_id_data = (unsigned int *)output_id_ptr;
+    int *output_id_data = (int *)output_id_ptr;
     for (int i = 0; i < NUM_PHOTON; i++)
       std::cout << output_id_data[i] << std::endl;
     RT_CHECK_ERROR(rtBufferUnmap(output_id));
@@ -75,6 +75,7 @@ void createContext(RTcontext *context)
   RT_CHECK_ERROR(rtContextCreate(context));
   RT_CHECK_ERROR(rtContextSetRayTypeCount(*context, 1));
   RT_CHECK_ERROR(rtContextSetEntryPointCount(*context, 1));
+  RT_CHECK_ERROR(rtContextSetPrintEnabled(*context, 1));
   RT_CHECK_ERROR(rtContextSetPrintBufferSize(*context, 4096));
 
   /* Ray generation program */
@@ -82,7 +83,7 @@ void createContext(RTcontext *context)
   RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "point_source", &ray_gen_program));
   RT_CHECK_ERROR(rtContextSetRayGenerationProgram(*context, 0, ray_gen_program));
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "source_pos", &source_pos));
-  rtVariableSet3f(source_pos, 0.0, 0.0, 0.0);
+  rtVariableSet3f(source_pos, 0.f, 0.f, 16.f);
 
   /* Exception program */
   RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "exception", &exception_program));
@@ -96,7 +97,7 @@ void createContext(RTcontext *context)
 void createHitBuffer(RTcontext *context, RTbuffer *output_id)
 {
   rtBufferCreate(*context, RT_BUFFER_OUTPUT, output_id);
-  rtBufferSetFormat(*output_id, RT_FORMAT_UNSIGNED_INT);
+  rtBufferSetFormat(*output_id, RT_FORMAT_INT);
   rtBufferSetSize1D(*output_id, NUM_PHOTON);
   RTvariable output_id_var;
   rtContextDeclareVariable(*context, "output_id", &output_id_var);

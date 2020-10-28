@@ -45,7 +45,7 @@ static __device__ void intersect_sphere(void)
     bool check_second = true;
     if (rtPotentialIntersection((root1 + root11) * l))
     {
-      hit_pos = center;
+      hit_pos = ray.origin + (root1 + root11)*D;
       geometric_normal = (O + (root1 + root11)*D)/radius;
       if (rtReportIntersection(0)) //? why rtReportIntersection can fail?
         check_second = false;
@@ -55,7 +55,7 @@ static __device__ void intersect_sphere(void)
       float root2 = (-b + sdisc) + (do_refine ? root1 : 0);
       if (rtPotentialIntersection(root2 * l))
       {
-        hit_pos = center;
+        hit_pos = ray.origin + root2*D;
         geometric_normal = (O + root2*D)/radius;
         rtReportIntersection(0);
       }
