@@ -81,9 +81,7 @@ int main(int argc, char *argv[])
     std::cout << "] context validation " << __FILE__ << ":" << __LINE__ << std::endl;
 
     // launch context
-    unsigned entry_point_index = 0u;
-    RTsize width = NUM_PHOTON;
-    RT_CHECK_ERROR(rtContextLaunch1D(context, entry_point_index, width));
+    RT_CHECK_ERROR(rtContextLaunch2D(context, 0u, width, height));
 
     /* Display image */
     if (strlen(outfile) == 0)
@@ -156,7 +154,7 @@ void createContext(RTcontext *context, RTbuffer *output_buffer_obj)
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "V", &V));
   RT_CHECK_ERROR(rtContextDeclareVariable(*context, "W", &W));
 
-  optix::float3 cam_eye = {0.0f, 0.0f, 5.0f};
+  optix::float3 cam_eye = {0.0f, 0.0f, 200.f};
   optix::float3 lookat = {0.0f, 0.0f, 0.0f};
   optix::float3 up = {0.0f, 1.0f, 0.0f};
   hfov = 60.0f;
