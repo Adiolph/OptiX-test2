@@ -131,10 +131,10 @@ void createSphere(RTcontext *context, RTgeometry *sphere)
   RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "intersect", &intersect));
   RT_CHECK_ERROR(rtGeometrySetIntersectionProgram(*sphere, intersect));
 
-  RTvariable sphere_param;
-  RT_CHECK_ERROR(rtGeometryDeclareVariable(*sphere, "sphere_param", &sphere_param));
+  RTvariable sphere_coor;
+  RT_CHECK_ERROR(rtGeometryDeclareVariable(*sphere, "sphere_coor", &sphere_coor));
   float sphere_loc[4] = {0.f, 0.f, 0.f, DOM_RAD};
-  RT_CHECK_ERROR(rtVariableSet4fv(sphere_param, sphere_loc));
+  RT_CHECK_ERROR(rtVariableSet4fv(sphere_coor, sphere_loc));
 }
 
 /*    
