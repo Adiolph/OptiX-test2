@@ -8,6 +8,7 @@
 #include "read_PTX.h"
 #include "error_check.h"
 #include "geo_configure.h"
+#include "cherenkov_step.h"
 #include <array>
 
 using namespace optix;
@@ -15,7 +16,8 @@ using namespace optix;
 const unsigned int NUM_PHOTON = 100u;
 
 void createContext(RTcontext *context);
-void createHitBuffer(RTcontext *context, RTbuffer *output_id);
+void createBufferCherenkovStep(RTcontext *context, RTbuffer *cherenkov_step_buf);
+void createBufferHit(RTcontext *context, RTbuffer *output_id);
 void createGeometry(RTcontext *context, const GeoConfig &cfg);
 void createMaterial(RTcontext *context, RTmaterial *material);
 void createSphere(RTcontext *context, RTgeometry *sphere);
@@ -28,11 +30,13 @@ int main(int argc, char *argv[])
     // Primary RTAPI objects
     RTcontext context;
     RTprogram ray_gen_program;
-    RTbuffer output_id;
+    RTbuffer output_id = 0;
+    RTbuffer cherenkov_step = 0;
 
     // Set up state
     createContext(&context);
-    createHitBuffer(&context, &output_id);
+    createBufferHit(&context, &output_id);
+    createBufferCherenkovStep(&context, &cherenkov_step);
     GeoConfig cfg(NUM_DOM);
     createGeometry(&context, cfg);
 
@@ -69,7 +73,8 @@ void createContext(RTcontext *context)
   RTprogram miss_program;
 
   /* variables for ray gen program */
-  RTvariable source_pos;
+  RTvariable cherenkov_step_var;
+  RTbuffer cherenkov_step_buf;
 
   /* Setup context */
   RT_CHECK_ERROR(rtContextCreate(context));
@@ -79,11 +84,9 @@ void createContext(RTcontext *context)
   RT_CHECK_ERROR(rtContextSetPrintBufferSize(*context, 4096));
 
   /* Ray generation program */
-  std::string ptx = read_ptx_file("point_source");
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "point_source", &ray_gen_program));
+  std::string ptx = read_ptx_file("gen_cherenkov");
+  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "gen_cherenkov", &ray_gen_program));
   RT_CHECK_ERROR(rtContextSetRayGenerationProgram(*context, 0, ray_gen_program));
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "source_pos", &source_pos));
-  rtVariableSet3f(source_pos, 0.f, 0.f, 0.f);
 
   /* Exception program */
   RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "exception", &exception_program));
@@ -94,19 +97,42 @@ void createContext(RTcontext *context)
   RT_CHECK_ERROR(rtContextSetMissProgram(*context, 0, miss_program));
 }
 
-void createHitBuffer(RTcontext *context, RTbuffer *output_id)
+void createBufferCherenkovStep(RTcontext *context, RTbuffer *cherenkov_step_buf)
 {
-  rtBufferCreate(*context, RT_BUFFER_OUTPUT, output_id);
-  rtBufferSetFormat(*output_id, RT_FORMAT_INT);
-  rtBufferSetSize1D(*output_id, NUM_PHOTON);
+  // create buffer
+  rtBufferCreate(*context, RT_BUFFER_INPUT, cherenkov_step_buf);
+  rtBufferSetFormat(*cherenkov_step_buf, RT_FORMAT_USER);
+  rtBufferSetSize1D(*cherenkov_step_buf, 1);
+
+  // fill buffer with data
+  void *cherenkov_step_ptr = 0;
+  RT_CHECK_ERROR(rtBufferMap(*cherenkov_step_buf, &cherenkov_step_ptr));
+  CherenkovStep *cherenkov_step_data = (CherenkovStep *)cherenkov_step_ptr;
+  cherenkov_step_data->dir = optix::make_float3(1.f, 0.f, 0.f);
+  cherenkov_step_data->pos = optix::make_float3(-500.f, 0.f, 0.f);
+  cherenkov_step_data->length = 1000.f;
+  cherenkov_step_data->time = 0.f;
+  RT_CHECK_ERROR(rtBufferUnmap(*cherenkov_step_buf));
+
+  // declear variable
+  RTvariable cherenkov_step_var;
+  rtContextDeclareVariable(*context, "cherenkov_step", &cherenkov_step_var);
+  rtVariableSetObject(cherenkov_step_var, &cherenkov_step_buf);
+}
+
+void createBufferHit(RTcontext *context, RTbuffer *output_id_buf)
+{
+  rtBufferCreate(*context, RT_BUFFER_OUTPUT, output_id_buf);
+  rtBufferSetFormat(*output_id_buf, RT_FORMAT_INT);
+  rtBufferSetSize1D(*output_id_buf, NUM_PHOTON);
   RTvariable output_id_var;
   rtContextDeclareVariable(*context, "output_id", &output_id_var);
-  rtVariableSetObject(output_id_var, *output_id);
+  rtVariableSetObject(output_id_var, *output_id_buf);
 }
 
 void createMaterial(RTcontext *context, RTmaterial *material)
 {
-  std::string ptx = read_ptx_file("simple_dom");
+  std::string ptx = read_ptx_file("medium_dom");
   std::cout << " createMaterial " << ptx.c_str() << std::endl;
 
   RTprogram closest_hit;

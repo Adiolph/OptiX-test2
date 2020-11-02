@@ -52,6 +52,7 @@ set(HEADERS
   include/geo_configure.h
   include/error_check.h
   include/read_PTX.h
+  include/cherenkov_step.h
 )
 
 set(SOURCES
@@ -62,21 +63,24 @@ set(SOURCES
 
 set(CUDA_SOURCES
   cuda/point_source.cu
-  cuda/simple_dom.cu
-  cuda/sphere.cu
+  cuda/gen_cherenkov.cu
   cuda/camera_viewer.cu
+  cuda/simple_dom.cu
+  cuda/medium_dom.cu
+  cuda/sphere.cu
 )
 
 set(CUDA_HEADERS
   cuda/PerRayData_pathtrace.h
   cuda/random.h
+  include/cherenkov_step.h
 )
 
 NVCUDA_COMPILE_PTX(SOURCES ${CUDA_SOURCES}
                   DEPENDENCIES ${CUDA_HEADERS}
                   TARGET_PATH "${CMAKE_CURRENT_BINARY_DIR}/ptx"
                   GENERATED_FILES PTX_SOURCES
-                  NVCC_OPTIONS "--gpu-architecture=compute_${COMPUTE_CAPABILITY}" "--use_fast_math" "--relocatable-device-code=true" "--generate-line-info" "-Wno-deprecated-gpu-targets" "-I${OptiX_INCLUDE}" "-I${CMAKE_CURRENT_SOURCE_DIR}/cuda" "-I${CUDA_INCLUDE_DIRS}"
+                  NVCC_OPTIONS "--gpu-architecture=compute_${COMPUTE_CAPABILITY}" "--use_fast_math" "--relocatable-device-code=true" "--generate-line-info" "-Wno-deprecated-gpu-targets" "-I${OptiX_INCLUDE}" "-I${CMAKE_CURRENT_SOURCE_DIR}/cuda" "-I${CMAKE_CURRENT_SOURCE_DIR}/include" "-I${CUDA_INCLUDE_DIRS}"
                   )
 
 include_directories(

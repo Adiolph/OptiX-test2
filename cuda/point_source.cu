@@ -11,8 +11,6 @@ rtDeclareVariable(uint, launch_index, rtLaunchIndex, );
 rtDeclareVariable(uint, launch_dim, rtLaunchDim, );
 rtBuffer<unsigned, 1> output_id;  // record the id of dom that photon hit, 0 if no hit
 
-rtDeclareVariable(PerRayData_pathtrace, prd, rtPayload, );
-
 RT_PROGRAM void point_source()
 {
     float3 ray_origin = source_pos;
@@ -35,6 +33,7 @@ RT_PROGRAM void point_source()
     output_id[launch_index] = prd.hitID;
 }
 
+rtDeclareVariable(PerRayData_pathtrace, prd, rtPayload, );
 
 RT_PROGRAM void exception()
 {
