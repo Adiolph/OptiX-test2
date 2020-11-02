@@ -8,18 +8,18 @@ using namespace optix;
 #define PI 3.1415926
 
 rtDeclareVariable(unsigned int, random_seed, , );  // the random seed of the kernel
-rtDeclareVariable(CherenkovStep, cherenkov_step, , );  // the step that can emit Cherenkov photons
 rtDeclareVariable(rtObject, top_object, , );  // group object
 rtDeclareVariable(uint, launch_index, rtLaunchIndex, );
 rtDeclareVariable(uint, launch_dim, rtLaunchDim, );
+rtBuffer<CherenkovStep> cherenkov_steps;  // the step that can emit Cherenkov photons
 rtBuffer<uint, 1> output_id;  // record the id of dom that photon hit, 0 if no hit
-rtBuffer<uint, 1> output_counts;  // record the counts of photon re-emission
 
 __device__ float3 gen_CK_dir(float costh, float sinth, unsigned int &random_seed);
 __device__ float3 rotate_by_axis(float3 axis, float3 vec);
 
 RT_PROGRAM void gen_cherenkov()
 {
+  CherenkovStep cherenkov_step = cherenkov_steps[0];
   PerRayData_pathtrace prd;
   prd.seed = tea<4>(launch_index, random_seed);
   prd.command = 0;
@@ -29,7 +29,6 @@ RT_PROGRAM void gen_cherenkov()
   float3 ray_dir = rotate_by_axis(cherenkov_step.dir, CK_dir);
   Ray ray = make_Ray(ray_origin, ray_dir, 0, 0.01, RT_DEFAULT_MAX);
   rtTrace(top_object, ray, prd);
-
 
   int flag_nohit = 1;
   int count = 0;

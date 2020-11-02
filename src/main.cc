@@ -50,17 +50,21 @@ int main(int argc, char *argv[])
     std::cout << "Context validation succeed! " << std::endl;
 
     // launch context
+    std::cout << "Launching kernel! " << std::endl;
     unsigned entry_point_index = 0u;
     RTsize width = NUM_PHOTON;
     context->launch(entry_point_index, width);
 
     // read output buffer
+    std::cout << "Reading output from buffer... " << std::endl;
     int *output_id_data;
     memcpy(output_id_data, output_hit_buf->map(), NUM_PHOTON * sizeof(int));
     for (int i = 0; i < NUM_PHOTON; i++)
       std::cout << output_id_data[i] << std::endl;
     output_hit_buf->unmap();
+    std::cout << "Finish reading data! " << std::endl;
     context->destroy();
+    std::cout << "OptiX closed! " << std::endl;
   }
   catch (const Exception &e)
   {
@@ -110,7 +114,7 @@ void createBufferCherenkovStep(Context context)
   cherenkov_step_data->time = 0.f;
   cherenkov_step_data->num_photon = NUM_PHOTON;
   cherenkov_step_buf->unmap();
-  context["cherenkov_step"]->set(cherenkov_step_buf);
+  context["cherenkov_steps"]->set(cherenkov_step_buf);
 }
 
 Buffer createBufferHit(Context context)
