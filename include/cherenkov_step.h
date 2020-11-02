@@ -6,8 +6,8 @@ using namespace optix;
 
 struct CherenkovStep
 {
-  float3 pos;
-  float3 dir;
+  optix::float3 pos;
+  optix::float3 dir;
   float length;
   float time;
   unsigned int num_photon;

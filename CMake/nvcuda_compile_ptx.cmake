@@ -39,7 +39,7 @@ FUNCTION(NVCUDA_COMPILE_PTX)
     # message("output = ${output}")
 
     LIST(APPEND PTX_FILES "${output}")
-    message("${CUDA_NVCC_EXECUTABLE} " "--machine=64;" "--ptx;" "${NVCUDA_COMPILE_PTX_NVCC_OPTIONS} " "${input} " "-o " "${output}")
+    # message("${CUDA_NVCC_EXECUTABLE} " "--machine=64;" "--ptx;" "${NVCUDA_COMPILE_PTX_NVCC_OPTIONS} " "${input} " "-o " "${output}")
 
     add_custom_command(
       OUTPUT  "${output}"
