@@ -15,7 +15,7 @@
 
 using namespace optix;
 
-const unsigned int NUM_PHOTON = 100u;
+const unsigned int NUM_PHOTON = 200u;
 
 Context createContext();
 void createBufferCherenkovStep(Context context);
@@ -57,12 +57,13 @@ int main(int argc, char *argv[])
 
     // read output buffer
     std::cout << "Reading output from buffer... " << std::endl;
-    int *output_id_data;
-    memcpy(output_id_data, output_hit_buf->map(), NUM_PHOTON * sizeof(int));
+    int *output_hit_data = new int[NUM_PHOTON];
+    memcpy(output_hit_data, output_hit_buf->map(), NUM_PHOTON * sizeof(int));
     for (int i = 0; i < NUM_PHOTON; i++)
-      std::cout << output_id_data[i] << std::endl;
+      std::cout << output_hit_data[i] << std::endl;
     output_hit_buf->unmap();
     std::cout << "Finish reading data! " << std::endl;
+    delete [] output_hit_data;
     context->destroy();
     std::cout << "OptiX closed! " << std::endl;
   }
@@ -83,7 +84,7 @@ Context createContext()
   context->setRayTypeCount(1);
   context->setEntryPointCount(1);
   context->setPrintEnabled(1);
-  context->setPrintBufferSize(4096);
+  context->setPrintBufferSize(10000);
 
   /* Ray generation program */
   std::string ptx = read_ptx_file("gen_cherenkov");

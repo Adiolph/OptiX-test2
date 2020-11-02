@@ -37,7 +37,6 @@ RT_PROGRAM void gen_cherenkov()
 
   int flag_continue = 1;
   int count = 0;
-  rtPrintf("//prd.command: %d", prd.command);
   while(flag_continue)
   {
     // test scattering, absorption and hit.
@@ -74,8 +73,8 @@ RT_PROGRAM void gen_cherenkov()
         break;
       }
     }
-    rtPrintf("//prd.command: %d", prd.command);
   }
+  rtPrintf("hitID: %d, num_photon: %d. \n", prd.hitID, count);
 }
 
 __device__ float3 gen_CK_dir(float costh, float sinth, unsigned int &random_seed)
