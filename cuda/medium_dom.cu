@@ -1,6 +1,7 @@
 #include <optix_world.h>
 #include <optixu/optixu_math_namespace.h>
 #include "PerRayData_pathtrace.h"
+#include "random.h"  // OptiX random header file in SDK/cuda/random.h
 
 using namespace optix;
 
@@ -13,8 +14,8 @@ RT_PROGRAM void closest_hit()
 {
   float Len_Abs = 30;
   float Len_Sca = 50;
-  float len_abs = -Len_Abs * logf(prd.seed);
-  float len_sca = -Len_Sca * logf(prd.seed);
+  float len_abs = -Len_Abs * logf(rnd(prd.seed));
+  float len_sca = -Len_Sca * logf(rnd(prd.seed));
   if (len_abs < len_intersect)
   {
     if (len_sca < len_abs)

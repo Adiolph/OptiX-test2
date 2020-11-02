@@ -27,12 +27,18 @@ RT_PROGRAM void gen_cherenkov()
   float3 ray_origin = cherenkov_step.pos + cherenkov_step.length * rnd(prd.seed) * cherenkov_step.dir;
   float3 CK_dir = gen_CK_dir(sqrtf(3)/2, 0.5, prd.seed);
   float3 ray_dir = rotate_by_axis(cherenkov_step.dir, CK_dir);
+  rtPrintf("//point_source  ray_direction (%.3f %.3f %.3f) ray_origin (%.3f %.3f %.3f)  \n", 
+  ray_dir.x, ray_dir.y, ray_dir.z,
+  ray_origin.x, ray_origin.y, ray_origin.z
+  );  
+
   Ray ray = make_Ray(ray_origin, ray_dir, 0, 0.01, RT_DEFAULT_MAX);
   rtTrace(top_object, ray, prd);
 
-  int flag_nohit = 1;
+  int flag_continue = 1;
   int count = 0;
-  while(flag_nohit)
+  rtPrintf("//prd.command: %d", prd.command);
+  while(flag_continue)
   {
     // test scattering, absorption and hit.
     switch(prd.command)
@@ -64,10 +70,11 @@ RT_PROGRAM void gen_cherenkov()
       case HIT:
       {
         output_id[launch_index] = prd.hitID;
-        flag_nohit = 0;
+        flag_continue = 0;
         break;
       }
     }
+    rtPrintf("//prd.command: %d", prd.command);
   }
 }
 
@@ -103,10 +110,23 @@ rtDeclareVariable(PerRayData_pathtrace, prd, rtPayload, );
 
 RT_PROGRAM void exception()
 {
-    rtPrintExceptionDetails();
+  rtPrintExceptionDetails();
 }
 
 RT_PROGRAM void miss()
 {
-    prd.hitID = 42;
+  float Len_Abs = 30;
+  float Len_Sca = 50;
+  float len_abs = -Len_Abs * logf(rnd(prd.seed));
+  float len_sca = -Len_Sca * logf(rnd(prd.seed));
+  if (len_sca < len_abs)
+  {
+    prd.command = SCA;
+    prd.length = len_sca;
+  }
+  else
+  {
+    prd.command = ABS;
+  }
+
 }
