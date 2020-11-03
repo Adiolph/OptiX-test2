@@ -1,8 +1,8 @@
 #include "geo_create.hh"
 #include "read_PTX.hh"
 
-template void createGeometry<true>(Context context, const GeoConfig &cfg);
-template void createGeometry<false>(Context context, const GeoConfig &cfg);
+template void createGeometry<true>(Context context);
+template void createGeometry<false>(Context context);
 
 template <bool test_geometry>
 Material createMaterial(Context context)

@@ -15,6 +15,7 @@ struct APIError
 void reportErrorMessage(const char *message);
 void handleError(RTcontext context, RTresult code, const char *file, int line);
 
+#ifndef RT_CHECK_ERROR
 #define RT_CHECK_ERROR(func)                    \
   do                                            \
   {                                             \
@@ -22,7 +23,9 @@ void handleError(RTcontext context, RTresult code, const char *file, int line);
     if (code != RT_SUCCESS)                     \
       throw APIError(code, __FILE__, __LINE__); \
   } while (0)
+#endif
 
+#ifndef SUTIL_CATCH
 #define SUTIL_CATCH(ctx)                              \
   catch (APIError & e)                                \
   {                                                   \
@@ -33,5 +36,6 @@ void handleError(RTcontext context, RTresult code, const char *file, int line);
     reportErrorMessage(e.what());                     \
     exit(1);                                          \
   }
+#endif
 
 #endif  // ERROR_CHECK_H
