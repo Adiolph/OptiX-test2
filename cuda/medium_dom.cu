@@ -36,6 +36,7 @@ RT_PROGRAM void closest_hit()
   else
   {
     prd.command = HIT;
-    prd.hitID = __float2int_rd(hit_pos.x);;
+    prd.hitID = __float2int_rd(hit_pos.x);
+    rtPrintf("hitID: %d, hit_pos: %.3f, %.3f, %.3f \n", prd.hitID, hit_pos.x, hit_pos.y, hit_pos.z);
   }
 };
