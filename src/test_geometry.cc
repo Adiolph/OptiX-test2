@@ -177,4 +177,6 @@ Context createContext(Buffer &output_buffer)
   output_buffer = context->createBuffer(RT_BUFFER_OUTPUT, RT_FORMAT_UNSIGNED_INT4, width, height);
   Variable output_var = context["output_buffer"];
   output_var->set(output_buffer);
+
+  return context;
 }
