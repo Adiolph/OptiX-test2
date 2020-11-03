@@ -5,9 +5,9 @@
 #include <optix_world.h>
 #include <iostream>
 
-const unsigned int DOM_NUM_X = 10u;
-const unsigned int DOM_NUM_Y = 10u;
-const unsigned int DOM_NUM_Z = 10u;
+const unsigned int DOM_NUM_X = 4u;
+const unsigned int DOM_NUM_Y = 4u;
+const unsigned int DOM_NUM_Z = 4u;
 const float DOM_SEP_X = 50.f;
 const float DOM_SEP_Y = 50.f;
 const float DOM_SEP_Z = 50.f;

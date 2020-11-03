@@ -111,6 +111,7 @@ add_executable(test_geometry
   src/test_geometry.cc
   src/read_PTX.cc
   src/error_check.cc
+  src/geo_create.cc
   ${HEADERS}
   ${CUDA_SOURCES}
   ${CUDA_HEADERS}

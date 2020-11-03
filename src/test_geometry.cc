@@ -9,6 +9,7 @@
 #include "read_PTX.hh"
 #include "error_check.h"
 #include "geo_configure.hh"
+#include "geo_create.hh"
 #include <array>
 
 using namespace optix;
@@ -17,15 +18,14 @@ const unsigned int NUM_PHOTON = 100u;
 int width = 1024;
 int height = 768;
 
-void createContext(RTcontext *context, RTbuffer *output_buffer_obj);
-void createGeometry(RTcontext *context, const GeoConfig &cfg);
-void createMaterial(RTcontext *context, RTmaterial *material);
-void createSphere(RTcontext *context, RTgeometry *sphere);
+Context createContext(Buffer &output_buffer);
 void printUsageAndExit(const char *argv0);
 
 int main(int argc, char *argv[])
 {
-  RTcontext context = 0;
+  Buffer output_buffer;
+  Context context = createContext(output_buffer);
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   try
   {
     char outfile[512];
@@ -58,46 +58,48 @@ int main(int argc, char *argv[])
         printUsageAndExit(argv[0]);
       }
     }
-
+    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
     /* Process command line args */
     if (strlen(outfile) == 0)
     {
       sutil::initGlut(&argc, argv);
     }
 
-    // Primary RTAPI objects
-    RTcontext context;
-    RTprogram ray_gen_program;
-    RTbuffer output_buffer_obj;
-
     // Set up state
-    createContext(&context, &output_buffer_obj);
+    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
     GeoConfig cfg(NUM_DOM);
-    createGeometry(&context, cfg);
+    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+    createGeometry<true>(context, cfg);
+    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
 
     // validate context
-    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << " ]" << std::endl;
-    RT_CHECK_ERROR(rtContextValidate(context));
-    std::cout << "[ context validation " << __FILE__ << ":" << __LINE__ << " ]" << std::endl;
+    std::cout << "Validating context... " << std::endl;
+    context->validate();
+    std::cout << "Context validation succeed! " << std::endl;
 
     // launch context
-    RT_CHECK_ERROR(rtContextLaunch2D(context, 0u, width, height));
+    context->launch(0u, width, height);
 
     /* Display image */
     if (strlen(outfile) == 0)
     {
-      sutil::displayBufferGlut(argv[0], output_buffer_obj);
+      sutil::displayBufferGlut(argv[0], output_buffer);
     }
     else
     {
-      sutil::displayBufferPPM(outfile, output_buffer_obj);
+      sutil::displayBufferPPM(outfile, output_buffer);
     }
 
     // clean up
-    RT_CHECK_ERROR(rtContextDestroy(context));
-    return (0);
+    context->destroy();
   }
-  SUTIL_CATCH(context)
+  catch (const Exception &e)
+  {
+    reportErrorMessage(e.getErrorString().c_str());
+    exit(1);
+  }
+
+  return (0);
 }
 
 void printUsageAndExit(const char *argv0)
@@ -109,190 +111,70 @@ void printUsageAndExit(const char *argv0)
   exit(1);
 }
 
-void createContext(RTcontext *context, RTbuffer *output_buffer_obj)
+Context createContext(Buffer &output_buffer)
 {
-  RTprogram ray_gen_program;
-  RTprogram exception_program;
-  RTprogram miss_program;
-  RTvariable output_buffer;
-  RTvariable epsilon;
+  /* Setup context */
+  Context context = Context::create();
+  context->setRayTypeCount(1u);
+  context->setEntryPointCount(1u);
+  context->setPrintBufferSize(4096);
+  std::string ptx = read_ptx_file("camera_viewer");
 
   /* variables for ray gen program */
-  RTvariable eye;
-  RTvariable U;
-  RTvariable V;
-  RTvariable W;
-  RTvariable badcolor;
-
-  /* viewing params */
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+  Variable eye = context["eye"];
+  Variable U = context["U"];
+  Variable V = context["V"];
+  Variable W = context["W"];
+  Variable epsilon = context["scene_epsilon"];
   float hfov, aspect_ratio;
-
-  /* variables for miss program */
-  RTvariable bg_color;
-  /* Setup context */
-  RT_CHECK_ERROR(rtContextCreate(context));
-  RT_CHECK_ERROR(rtContextSetRayTypeCount(*context, 1));
-  RT_CHECK_ERROR(rtContextSetEntryPointCount(*context, 1));
-  RT_CHECK_ERROR(rtContextSetPrintBufferSize(*context, 4096));
-
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "output_buffer", &output_buffer));
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "scene_epsilon", &epsilon));
-  RT_CHECK_ERROR(rtVariableSet1f(epsilon, 1.e-4f));
-
-  /* Render result buffer */
-  RT_CHECK_ERROR(rtBufferCreate(*context, RT_BUFFER_OUTPUT, output_buffer_obj));
-  RT_CHECK_ERROR(rtBufferSetFormat(*output_buffer_obj, RT_FORMAT_UNSIGNED_BYTE4));
-  RT_CHECK_ERROR(rtBufferSetSize2D(*output_buffer_obj, width, height));
-  RT_CHECK_ERROR(rtVariableSetObject(output_buffer, *output_buffer_obj));
-
-  /* Ray generation program */
-  std::string ptx = read_ptx_file("camera_viewer");
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "ray_gen_camera", &ray_gen_program));
-  RT_CHECK_ERROR(rtContextSetRayGenerationProgram(*context, 0, ray_gen_program));
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "eye", &eye));
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "U", &U));
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "V", &V));
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "W", &W));
-
-  optix::float3 cam_eye = {300.f, 0.f, 0.f};
+  optix::float3 camera_eye = {350.f, 0.f, 0.f};
   optix::float3 lookat = {-1.f, 0.f, 0.f};
   optix::float3 up = {0.f, 0.f, 1.f};
   hfov = 60.0f;
   aspect_ratio = (float)width / (float)height;
+  float epsilon_data = 1.e-4f;
   optix::float3 camera_u, camera_v, camera_w;
   sutil::calculateCameraVariables(
-      cam_eye, lookat, up, hfov, aspect_ratio,
+      camera_eye, lookat, up, hfov, aspect_ratio,
       camera_u, camera_v, camera_w);
 
-  std::cout << "Camera pos: " << cam_eye.x << ", " << cam_eye.y << ", " << cam_eye.z << std::endl;
+  // print ray camera set up variables
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+  std::cout << "Camera pos: " << camera_eye.x << ", " << camera_eye.y << ", " << camera_eye.z << std::endl;
   std::cout << "U: " << camera_u.x << ", " << camera_u.y << ", " << camera_u.z << std::endl;
   std::cout << "V: " << camera_v.x << ", " << camera_v.y << ", " << camera_v.z << std::endl;
   std::cout << "W: " << camera_w.x << ", " << camera_w.y << ", " << camera_w.z << std::endl;
 
-  RT_CHECK_ERROR(rtVariableSet3fv(eye, &cam_eye.x));
-  RT_CHECK_ERROR(rtVariableSet3fv(U, &camera_u.x));
-  RT_CHECK_ERROR(rtVariableSet3fv(V, &camera_v.x));
-  RT_CHECK_ERROR(rtVariableSet3fv(W, &camera_w.x));
+  // ray generation program
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+  Program ray_gen = context->createProgramFromPTXFile(ptx.c_str(), "ray_gen_camera");
+  context->setRayGenerationProgram(0, ray_gen);
+  eye->set3fv(&camera_eye.x);
+  U->set3fv(&camera_u.x);
+  V->set3fv(&camera_v.x);
+  W->set3fv(&camera_w.x);
+  epsilon->set1fv(&epsilon_data);
 
-  /* Exception program */
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "bad_color", &badcolor));
-  RT_CHECK_ERROR(rtVariableSet3f(badcolor, 1.0f, 0.0f, 1.0f));
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "exception_camera", &exception_program));
-  RT_CHECK_ERROR(rtContextSetExceptionProgram(*context, 0, exception_program));
+  // exception program set up
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+  Program exception_program = context->createProgramFromPTXFile(ptx.c_str(), "exception_camera");
+  context->setExceptionProgram(0, exception_program);
+  Variable bad_color = context["bad_color"];
+  float3 bad_color_data = {1.f, 0.f, 1.f};
+  bad_color->set3fv(&bad_color_data.x);
 
-  /* Miss program */
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "miss_camera", &miss_program));
-  RT_CHECK_ERROR(rtProgramDeclareVariable(miss_program, "bg_color", &bg_color));
-  RT_CHECK_ERROR(rtVariableSet3f(bg_color, .3f, 0.1f, 0.2f));
-  RT_CHECK_ERROR(rtContextSetMissProgram(*context, 0, miss_program));
-}
+  // miss program set up
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+  Program miss_program = context->createProgramFromPTXFile(ptx.c_str(), "miss_camera");
+  context->setMissProgram(0, miss_program);
+  Variable bg_color = context["bg_color"];
+  float3 bg_color_data = {.3f, 0.1f, 0.2f};
+  bg_color->set3fv(&bg_color_data.x);
 
-void createMaterial(RTcontext *context, RTmaterial *material)
-{
-  std::string ptx = read_ptx_file("camera_viewer");
-  std::cout << " createMaterial " << ptx.c_str() << std::endl;
-
-  RTprogram closest_hit;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "closest_hit_camera", &closest_hit));
-
-  RT_CHECK_ERROR(rtMaterialCreate(*context, material));
-  RT_CHECK_ERROR(rtMaterialSetClosestHitProgram(*material, 0, closest_hit));
-}
-
-void createSphere(RTcontext *context, RTgeometry *sphere)
-{
-  std::string ptx = read_ptx_file("sphere");
-
-  RT_CHECK_ERROR(rtGeometryCreate(*context, sphere));
-  RT_CHECK_ERROR(rtGeometrySetPrimitiveCount(*sphere, 1u));
-
-  RTprogram bounds;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "bounds", &bounds));
-  RT_CHECK_ERROR(rtGeometrySetBoundingBoxProgram(*sphere, bounds));
-
-  RTprogram intersect;
-  RT_CHECK_ERROR(rtProgramCreateFromPTXFile(*context, ptx.c_str(), "intersect", &intersect));
-  RT_CHECK_ERROR(rtGeometrySetIntersectionProgram(*sphere, intersect));
-
-  RTvariable sphere_coor;
-  RT_CHECK_ERROR(rtGeometryDeclareVariable(*sphere, "sphere_coor", &sphere_coor));
-  float sphere_loc[4] = {0.f, 0.f, 0.f, DOM_RAD};
-  RT_CHECK_ERROR(rtVariableSet4fv(sphere_coor, sphere_loc));
-}
-
-/*    
-createGeometry
---------------
-
-top                      (Group)
-    assembly             (Group) 
-       xform             (Transform)
-           perxform      (GeometryGroup)
-              pergi      (GeometryInstance)  
-              accel      (Acceleration)   
-*/
-
-void createGeometry(RTcontext *context, const GeoConfig &cfg)
-{
-  RTgeometry sphere;
-  createSphere(context, &sphere);
-
-  RTmaterial material;
-  createMaterial(context, &material);
-
-  RTacceleration accel;
-  RT_CHECK_ERROR(rtAccelerationCreate(*context, &accel));
-  RT_CHECK_ERROR(rtAccelerationSetBuilder(accel, "Trbvh"));
-
-  unsigned num_instances = cfg.transforms.size();
-
-  RTacceleration assembly_accel;
-  RT_CHECK_ERROR(rtAccelerationCreate(*context, &assembly_accel));
-  RT_CHECK_ERROR(rtAccelerationSetBuilder(assembly_accel, "Trbvh"));
-
-  RTgroup assembly;
-  RT_CHECK_ERROR(rtGroupCreate(*context, &assembly));
-  RT_CHECK_ERROR(rtGroupSetChildCount(assembly, num_instances));
-  RT_CHECK_ERROR(rtGroupSetAcceleration(assembly, assembly_accel));
-
-  for (int instance_idx = 0; instance_idx < num_instances; instance_idx++)
-  {
-    RTtransform xform;
-    RT_CHECK_ERROR(rtTransformCreate(*context, &xform));
-    int transpose = 0;
-    const std::array<float, 16> &arr = cfg.transforms[instance_idx];
-    const float *matrix = arr.data();
-    const float *inverse = NULL;
-    RT_CHECK_ERROR(rtTransformSetMatrix(xform, transpose, matrix, inverse));
-
-    RTgeometryinstance pergi;
-    RT_CHECK_ERROR(rtGeometryInstanceCreate(*context, &pergi));
-    RT_CHECK_ERROR(rtGeometryInstanceSetGeometry(pergi, sphere));
-    RT_CHECK_ERROR(rtGeometryInstanceSetMaterialCount(pergi, 1u));
-    RT_CHECK_ERROR(rtGeometryInstanceSetMaterial(pergi, 0, material));
-
-    RTgeometrygroup perxform;
-    RT_CHECK_ERROR(rtGeometryGroupCreate(*context, &perxform));
-    RT_CHECK_ERROR(rtGeometryGroupSetChildCount(perxform, 1u));
-    RT_CHECK_ERROR(rtGeometryGroupSetChild(perxform, 0, pergi));
-    RT_CHECK_ERROR(rtGeometryGroupSetAcceleration(perxform, accel));
-
-    RT_CHECK_ERROR(rtTransformSetChild(xform, perxform));
-
-    RT_CHECK_ERROR(rtGroupSetChild(assembly, instance_idx, xform));
-  }
-
-  RTacceleration top_accel;
-  RT_CHECK_ERROR(rtAccelerationCreate(*context, &top_accel));
-  RT_CHECK_ERROR(rtAccelerationSetBuilder(top_accel, "Trbvh"));
-
-  RTgroup top;
-  RT_CHECK_ERROR(rtGroupCreate(*context, &top));
-  RT_CHECK_ERROR(rtGroupSetChildCount(top, 1u));
-  RT_CHECK_ERROR(rtGroupSetChild(top, 0, assembly));
-  RT_CHECK_ERROR(rtGroupSetAcceleration(top, top_accel));
-
-  RTvariable top_object;
-  RT_CHECK_ERROR(rtContextDeclareVariable(*context, "top_object", &top_object));
-  RT_CHECK_ERROR(rtVariableSetObject(top_object, top));
+  // set up output buffer
+  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
+  output_buffer = context->createBuffer(RT_BUFFER_OUTPUT, RT_FORMAT_UNSIGNED_INT4, width, height);
+  Variable output_var = context["output_buffer"];
+  output_var->set(output_buffer);
 }

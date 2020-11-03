@@ -43,5 +43,5 @@ if [ ! -f CMakeCache.txt ]; then
             
 fi 
 
-cd $bdir && make VERBOSE=1
+cd $bdir && make
 # ./test_geometry
