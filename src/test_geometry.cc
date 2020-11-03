@@ -174,7 +174,7 @@ Context createContext(Buffer &output_buffer)
 
   // set up output buffer
   std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
-  output_buffer = context->createBuffer(RT_BUFFER_OUTPUT, RT_FORMAT_UNSIGNED_INT4, width, height);
+  output_buffer = context->createBuffer(RT_BUFFER_OUTPUT, RT_FORMAT_UNSIGNED_BYTE4, width, height);
   Variable output_var = context["output_buffer"];
   output_var->set(output_buffer);
 
