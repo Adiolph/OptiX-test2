@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
 {
   Buffer output_buffer;
   Context context = createContext(output_buffer);
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   try
   {
     char outfile[512];
@@ -58,7 +57,6 @@ int main(int argc, char *argv[])
         printUsageAndExit(argv[0]);
       }
     }
-    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
     /* Process command line args */
     if (strlen(outfile) == 0)
     {
@@ -66,11 +64,8 @@ int main(int argc, char *argv[])
     }
 
     // Set up state
-    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
     GeoConfig cfg(NUM_DOM);
-    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
     createGeometry<true>(context, cfg);
-    std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
 
     // validate context
     std::cout << "Validating context... " << std::endl;
@@ -121,7 +116,6 @@ Context createContext(Buffer &output_buffer)
   std::string ptx = read_ptx_file("camera_viewer");
 
   /* variables for ray gen program */
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Variable eye = context["eye"];
   Variable U = context["U"];
   Variable V = context["V"];
@@ -140,14 +134,12 @@ Context createContext(Buffer &output_buffer)
       camera_u, camera_v, camera_w);
 
   // print ray camera set up variables
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   std::cout << "Camera pos: " << camera_eye.x << ", " << camera_eye.y << ", " << camera_eye.z << std::endl;
   std::cout << "U: " << camera_u.x << ", " << camera_u.y << ", " << camera_u.z << std::endl;
   std::cout << "V: " << camera_v.x << ", " << camera_v.y << ", " << camera_v.z << std::endl;
   std::cout << "W: " << camera_w.x << ", " << camera_w.y << ", " << camera_w.z << std::endl;
 
   // ray generation program
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Program ray_gen = context->createProgramFromPTXFile(ptx.c_str(), "ray_gen_camera");
   context->setRayGenerationProgram(0, ray_gen);
   eye->set3fv(&camera_eye.x);
@@ -157,7 +149,6 @@ Context createContext(Buffer &output_buffer)
   epsilon->set1fv(&epsilon_data);
 
   // exception program set up
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Program exception_program = context->createProgramFromPTXFile(ptx.c_str(), "exception_camera");
   context->setExceptionProgram(0, exception_program);
   Variable bad_color = context["bad_color"];
@@ -165,7 +156,6 @@ Context createContext(Buffer &output_buffer)
   bad_color->set3fv(&bad_color_data.x);
 
   // miss program set up
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Program miss_program = context->createProgramFromPTXFile(ptx.c_str(), "miss_camera");
   context->setMissProgram(0, miss_program);
   Variable bg_color = context["bg_color"];
@@ -173,7 +163,6 @@ Context createContext(Buffer &output_buffer)
   bg_color->set3fv(&bg_color_data.x);
 
   // set up output buffer
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   output_buffer = context->createBuffer(RT_BUFFER_OUTPUT, RT_FORMAT_UNSIGNED_BYTE4, width, height);
   Variable output_var = context["output_buffer"];
   output_var->set(output_buffer);

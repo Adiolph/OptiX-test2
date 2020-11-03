@@ -57,7 +57,6 @@ top                      (Group)
 template <bool test_geometry>
 void createGeometry(Context context, const GeoConfig &cfg)
 {
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Geometry sphere = createSphere(context);
   Material material = createMaterial<test_geometry>(context);
   Acceleration accel = context->createAcceleration("Trbvh");
@@ -67,7 +66,6 @@ void createGeometry(Context context, const GeoConfig &cfg)
   assembly->setChildCount(num_instances);
   assembly->setAcceleration(assembly_accel);
 
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   for (int instance_idx = 0; instance_idx < num_instances; instance_idx++)
   {
     Transform xform = context->createTransform();
@@ -90,14 +88,12 @@ void createGeometry(Context context, const GeoConfig &cfg)
     xform->setChild(perxform);
     assembly->setChild(instance_idx, xform);
   }
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Group top = context->createGroup();
   Acceleration top_accel = context->createAcceleration("Trbvh");
   top->setChildCount(1u);
   top->setChild(0, assembly);
   top->setAcceleration(top_accel);
 
-  std::cout << "At: " << __FILE__ << ": " << __LINE__ << std::endl ; 
   Variable top_object = context["top_object"];
   top_object->set(top);
 }
