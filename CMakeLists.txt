@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
-set(NAME OptiX-test)
+set(NAME photon_propagation_optix)
 project(${NAME})
 
 if(POLICY CMP0077)  # see notes/issues/cmake-3.13.4-FindCUDA-warnings.rst
     cmake_policy(SET CMP0077 OLD)
 endif()
 
-set(CMAKE_CXX_STANDARD 14) 
+set(CMAKE_CXX_STANDARD 17) 
 set(CMAKE_CXX_STANDARD_REQUIRED on) 
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${OptiX_INSTALL_DIR}/SDK/CMake")
@@ -49,16 +49,18 @@ message(STATUS "COMPUTE_CAPABILITY = ${COMPUTE_CAPABILITY}")
 # message("CUDA_NVCC_FLAGS: " ${CUDA_NVCC_FLAGS})
 
 set(HEADERS
-  include/geo_configure.h
+  include/geo_configure.hh
   include/error_check.h
-  include/read_PTX.h
+  include/read_PTX.hh
   include/cherenkov_step.h
+  include/geo_create.hh
 )
 
 set(SOURCES
   src/error_check.cc
   src/main.cc
   src/read_PTX.cc
+  src/geo_create.cc
 )
 
 set(CUDA_SOURCES
@@ -73,6 +75,7 @@ set(CUDA_SOURCES
 set(CUDA_HEADERS
   cuda/PerRayData_pathtrace.h
   cuda/random.h
+  cuda/rotateUz.h
   include/cherenkov_step.h
 )
 

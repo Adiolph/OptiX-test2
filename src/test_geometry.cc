@@ -6,9 +6,9 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
-#include "read_PTX.h"
+#include "read_PTX.hh"
 #include "error_check.h"
-#include "geo_configure.h"
+#include "geo_configure.hh"
 #include <array>
 
 using namespace optix;

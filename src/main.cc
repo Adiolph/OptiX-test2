@@ -7,11 +7,13 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
-#include "read_PTX.h"
-#include "error_check.h"
-#include "geo_configure.h"
-#include "cherenkov_step.h"
 #include <array>
+
+#include "read_PTX.hh"
+#include "error_check.h"
+#include "geo_configure.hh"
+#include "geo_create.hh"
+#include "cherenkov_step.h"
 
 using namespace optix;
 
@@ -20,9 +22,6 @@ const unsigned int NUM_PHOTON = 200u;
 Context createContext();
 void createBufferCherenkovStep(Context context);
 Buffer createBufferHit(Context context);
-Geometry createSphere(Context context);
-Material createMaterial(Context context);
-void createGeometry(Context context, const GeoConfig &cfg);
 
 int main(int argc, char *argv[])
 {
@@ -41,7 +40,7 @@ int main(int argc, char *argv[])
 
     std::cout << "Creating geometry... " << std::endl;
     GeoConfig cfg(NUM_DOM);
-    createGeometry(context, cfg);
+    createGeometry<false>(context, cfg);
     std::cout << "Geometry creation succeed! " << std::endl;
 
     // validate context
@@ -126,86 +125,4 @@ Buffer createBufferHit(Context context)
   Variable output_id_var = context["output_id"];
   output_id_var->set(output_id_buf);
   return output_id_buf;
-}
-
-Material createMaterial(Context context)
-{
-  Material material = context->createMaterial();
-  std::string ptx = read_ptx_file("medium_dom");
-  Program closest_hit = context->createProgramFromPTXFile(ptx.c_str(), "closest_hit");
-  material->setClosestHitProgram(0, closest_hit);
-  return material;
-}
-
-Geometry createSphere(Context context)
-{
-  Geometry sphere = context->createGeometry();
-  sphere->setPrimitiveCount(1u);
-
-  std::string ptx = read_ptx_file("sphere");
-  Program bounds = context->createProgramFromPTXFile(ptx.c_str(), "bounds");
-  sphere->setBoundingBoxProgram(bounds);
-
-  Program intersect = context->createProgramFromPTXFile(ptx.c_str(), "intersect");
-  sphere->setIntersectionProgram(intersect);
-
-  Variable sphere_coor_var = context["sphere_coor"];
-  float sphere_coor_data[4] = {0.f, 0.f, 0.f, DOM_RAD};
-  sphere_coor_var->set4fv(sphere_coor_data);
-  return sphere;
-}
-
-/*    
-createGeometry
---------------
-
-top                      (Group)
-    assembly             (Group) 
-       xform             (Transform)
-           perxform      (GeometryGroup)
-              pergi      (GeometryInstance)  
-              accel      (Acceleration)   
-*/
-
-void createGeometry(Context context, const GeoConfig &cfg)
-{
-  Geometry sphere = createSphere(context);
-  Material material = createMaterial(context);
-  Acceleration accel = context->createAcceleration("Trbvh");
-  Acceleration assembly_accel = context->createAcceleration("Trbvh");
-  unsigned num_instances = cfg.transforms.size();
-  Group assembly = context->createGroup();
-  assembly->setChildCount(num_instances);
-  assembly->setAcceleration(assembly_accel);
-
-  for (int instance_idx = 0; instance_idx < num_instances; instance_idx++)
-  {
-    Transform xform = context->createTransform();
-    int transpose = 0;
-    const std::array<float, 16> &arr = cfg.transforms[instance_idx];
-    const float *matrix = arr.data();
-    const float *inverse = NULL;
-    xform->setMatrix(transpose, matrix, inverse);
-
-    GeometryInstance pergi = context->createGeometryInstance();
-    pergi->setGeometry(sphere);
-    pergi->setMaterialCount(1u);
-    pergi->setMaterial(0, material);
-
-    GeometryGroup perxform = context->createGeometryGroup();
-    perxform->setChildCount(1u);
-    perxform->setChild(0, pergi);
-    perxform->setAcceleration(accel);
-
-    xform->setChild(perxform);
-    assembly->setChild(instance_idx, xform);
-  }
-  Group top = context->createGroup();
-  Acceleration top_accel = context->createAcceleration("Trbvh");
-  top->setChildCount(1u);
-  top->setChild(0, assembly);
-  top->setAcceleration(top_accel);
-
-  Variable top_object = context["top_object"];
-  top_object->set(top);
 }
