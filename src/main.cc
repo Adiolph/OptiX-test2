@@ -11,7 +11,6 @@
 
 #include "read_PTX.hh"
 #include "error_check.h"
-#include "geo_configure.hh"
 #include "geo_create.hh"
 #include "cherenkov_step.h"
 
@@ -39,8 +38,7 @@ int main(int argc, char *argv[])
     std::cout << "Buffer creation succeed! " << std::endl;
 
     std::cout << "Creating geometry... " << std::endl;
-    GeoConfig cfg(NUM_DOM);
-    createGeometry<false>(context, cfg);
+    createGeometry<false>(context);
     std::cout << "Geometry creation succeed! " << std::endl;
 
     // validate context

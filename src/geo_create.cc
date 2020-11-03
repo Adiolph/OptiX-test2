@@ -55,8 +55,9 @@ top                      (Group)
 */
 
 template <bool test_geometry>
-void createGeometry(Context context, const GeoConfig &cfg)
+void createGeometry(Context context)
 {
+  GeoConfig cfg(NUM_DOM);
   Geometry sphere = createSphere(context);
   Material material = createMaterial<test_geometry>(context);
   Acceleration accel = context->createAcceleration("Trbvh");

@@ -12,4 +12,4 @@ Geometry createSphere(Context context);
 Material createMaterial(Context context);
 
 template<bool test_geometry>
-void createGeometry(Context context, const GeoConfig &cfg);
+void createGeometry(Context context);

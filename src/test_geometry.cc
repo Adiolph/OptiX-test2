@@ -8,7 +8,6 @@
 #include <vector>
 #include "read_PTX.hh"
 #include "error_check.h"
-#include "geo_configure.hh"
 #include "geo_create.hh"
 #include <array>
 
@@ -65,7 +64,7 @@ int main(int argc, char *argv[])
 
     // Set up state
     GeoConfig cfg(NUM_DOM);
-    createGeometry<true>(context, cfg);
+    createGeometry<true>(context);
 
     // validate context
     std::cout << "Validating context... " << std::endl;
