@@ -12,6 +12,7 @@ rtDeclareVariable(float, len_intersect, rtIntersectionDistance, );
 
 RT_PROGRAM void closest_hit()
 {
+  // TODO: add medium texture (or boundary texture)
   float Len_Abs = 30;
   float Len_Sca = 50;
   float len_abs = -Len_Abs * logf(rnd(prd.seed));

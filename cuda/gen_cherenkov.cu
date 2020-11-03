@@ -25,6 +25,7 @@ RT_PROGRAM void gen_cherenkov()
   prd.command = 0;
   prd.hitID = 0;
   float3 ray_origin = cherenkov_step.pos + cherenkov_step.length * rnd(prd.seed) * cherenkov_step.dir;
+  // TODO: add wave length depedented cherenkov angle
   float3 ray_dir = gen_CK_dir(sqrtf(3)/2, 0.5, prd.seed);
   rotateUz(ray_dir, cherenkov_step.dir);
   rtPrintf("// point_source  ray_direction: (%.3f %.3f %.3f), ray_origin: (%.3f %.3f %.3f) \n",
