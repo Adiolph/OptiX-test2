@@ -68,7 +68,7 @@ RT_PROGRAM void intersect(int primIdx)
   intersect_sphere<true>();
 }
 
-RT_PROGRAM void bounds(int, float result[6])
+RT_PROGRAM void bounds(int primIdx, float result[6])
 {
   const float3 cen = make_float3(sphere_coor);
   const float3 rad = make_float3(sphere_coor.w);
